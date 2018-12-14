@@ -9,6 +9,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -54,18 +55,36 @@ type Rating struct {
 
 var (
 	movie MovieT
+	title string
 )
 
 func main() {
 
-	title := os.Args[1]
+	title := flag.String("title", "", "movie title to search for (required)")
+	debug := flag.Bool("debug", false, "prints the API query for debugging (optional)")
+
+	flag.Parse()
+	if *title == "" {
+		fmt.Printf("movie title not specified - usage:  -title=\"<Movie Title>\"\n")
+		os.Exit(1)
+	}
+
 	key := os.Getenv("OMDAPI_KEY")
-	query := fmt.Sprintf("http://www.omdbapi.com/?apikey=%s&t=\"%s\"", key, title)
-	fmt.Println(query)
+	if key == "" {
+		fmt.Printf("environment variable OMDAPI_KEY not found - aborting\n")
+		os.Exit(1)
+	}
+
+	query := fmt.Sprintf("http://www.omdbapi.com/?apikey=%s&t=\"%s\"", key, *title)
+
+	if *debug == true {
+		fmt.Println(query)
+	}
+
 	response, err := http.Get(query)
 	if err != nil {
 		fmt.Printf("query failed: %s\n", err)
-		return
+		os.Exit(1)
 	}
 
 	data, _ := ioutil.ReadAll(response.Body)

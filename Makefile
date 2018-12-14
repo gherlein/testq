@@ -2,7 +2,7 @@ NAME   := testq
 
 
 all: 
-	go build
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o testq .
 	docker build -t gherlein/testq .
 
 dependencies:
